@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 import requests
 
+
 from sqlalchemy.orm import Session
 
-import crud_team,crud_user, models, schemas
-from database import SessionLocal, engine
+from app import crud_team,crud_user, models, schemas
+from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -17,10 +18,10 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/users/", response_model=schemas.User)
+@app.post("/register/", response_model=schemas.User)
 def create_user(user: schemas.CreateUser, db: Session = Depends(get_db)):
     '''Criação de Usuário'''
-    db_user = crud_user.get_user_by_username(db, username=user.username)
+    db_user = crud_user.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud_user.create_user(db=db, user=user)
@@ -41,8 +42,14 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+@app.delete('/users/{user_id}')
+def delete_user(user_id:int, db:Session = Depends(get_db)):
+    '''Deleta Usuário'''
+    return crud_user.delete_user(db=db, user_id=user_id)
 
-@app.post("/users/{user_id}/teams/", response_model=schemas.Team)
+
+
+@app.post("/users/{user_id}/createteam/", response_model=schemas.Team)
 def create_team_for_user(
     user_id: int, team: schemas.CreateTeam, db: Session = Depends(get_db)
 ):
@@ -50,7 +57,7 @@ def create_team_for_user(
     return crud_team.create_user_team(db=db, team=team, user_id=user_id)
 
 
-@app.get("/teams/", response_model=list[schemas.Time])
+@app.get("/teams/", response_model=list[schemas.Team])
 def read_teams(db: Session = Depends(get_db)):
     '''Mostra a Lista de Times'''
     teams = crud_team.get_teams(db)
@@ -58,10 +65,10 @@ def read_teams(db: Session = Depends(get_db)):
 
 @app.put("/teams/{team_id}", response_model=schemas.Team)
 def update_team(
-    team_id: int, time: schemas.Team,
+    team_id: int, owner_id: int, time: schemas.Team,
     db: Session = Depends(get_db)):
     '''Atualiza o time desejado'''
-    return crud_team.update_team(db=db, team_id=team_id, team=time)
+    return crud_team.update_team(db=db, team_id=team_id, team=time, owner_id=owner_id)
 
 @app.delete("/teams/{team_id}", response_model=schemas.Team)
 def delete_team(team_id:int, db:Session = Depends(get_db)):

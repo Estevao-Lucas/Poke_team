@@ -19,7 +19,6 @@ class Team(BaseTeam):
         orm_mode = True
 
 class BaseUser(BaseModel):
-    username: str
     email: str
 
 

@@ -1,22 +1,22 @@
 from fastapi import status, HTTPException
-import models, schemas
+from app import models, schemas
 from sqlalchemy.orm import Session
 
 
 def get_teams(db: Session):
     '''Lista todos os Times'''
-    return db.query(models.Time).all()
+    return db.query(models.Team).all()
 
 
 def create_user_team(db: Session, team: schemas.CreateTeam, user_id: int):
     '''Criação de um time para o usuário'''
-    db_team = models.Time(**team.dict(), owner_id=user_id)
+    db_team = models.Team(**team.dict(), owner_id=user_id)
     db.add(db_team)
     db.commit()
     db.refresh(db_team)
     return db_team
 
-def update_team(db: Session, team_id: int, team:schemas.Time):
+def update_team(db: Session, team_id: int, team:schemas.Team, owner_id:int):
     '''Atualiza um time'''
     team_to_update = db.query(models.Team).filter(models.Team.id == team_id).first()
     team_to_update.name = team.name
