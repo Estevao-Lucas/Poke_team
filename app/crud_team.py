@@ -16,9 +16,11 @@ def create_user_team(db: Session, team: schemas.CreateTeam, user_id: int):
     db.refresh(db_team)
     return db_team
 
-def update_team(db: Session, team_id: int, team:schemas.Team, owner_id:int):
+
+def update_team(db: Session, team_id: int, team: schemas.Team, owner_id: int):
     '''Atualiza um time'''
-    team_to_update = db.query(models.Team).filter(models.Team.id == team_id).first()
+    team_to_update = db.query(models.Team).filter(
+        models.Team.id == team_id).first()
     team_to_update.name = team.name
     team_to_update.pokemon = team.pokemon
     team_to_update.pokemon2 = team.pokemon2
@@ -27,12 +29,15 @@ def update_team(db: Session, team_id: int, team:schemas.Team, owner_id:int):
     db.commit()
     return team_to_update
 
-def delete_team(db: Session, team_id:int):
+
+def delete_team(db: Session, team_id: int):
     '''Deleta um time'''
-    team_to_delete = db.query(models.Team).filter(models.Team.id == team_id).first()
+    team_to_delete = db.query(models.Team).filter(
+        models.Team.id == team_id).first()
 
     if team_to_delete is None:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail="Team Not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Team Not Found")
 
     db.delete(team_to_delete)
     db.commit()

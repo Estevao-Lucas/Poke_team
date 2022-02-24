@@ -1,15 +1,15 @@
 from fastapi import FastAPI, Depends, HTTPException
 import requests
 
-
 from sqlalchemy.orm import Session
 
-from app import crud_team,crud_user, models, schemas
+from app import crud_team, crud_user, models, schemas
 from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
 
 def get_db():
     db = SessionLocal()
@@ -17,6 +17,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @app.post("/register/", response_model=schemas.User)
 def create_user(user: schemas.CreateUser, db: Session = Depends(get_db)):
@@ -42,11 +43,11 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+
 @app.delete('/users/{user_id}')
-def delete_user(user_id:int, db:Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     '''Deleta Usuário'''
     return crud_user.delete_user(db=db, user_id=user_id)
-
 
 
 @app.post("/users/{user_id}/createteam/", response_model=schemas.Team)
@@ -63,25 +64,32 @@ def read_teams(db: Session = Depends(get_db)):
     teams = crud_team.get_teams(db)
     return teams
 
+
 @app.put("/teams/{team_id}", response_model=schemas.Team)
 def update_team(
-    team_id: int, owner_id: int, time: schemas.Team,
-    db: Session = Depends(get_db)):
+        team_id: int, owner_id: int, time: schemas.Team,
+        db: Session = Depends(get_db)
+    ):
     '''Atualiza o time desejado'''
-    return crud_team.update_team(db=db, team_id=team_id, team=time, owner_id=owner_id)
+    return crud_team.update_team(
+        db=db, team_id=team_id, team=time,
+        owner_id=owner_id
+    )
+
 
 @app.delete("/teams/{team_id}", response_model=schemas.Team)
-def delete_team(team_id:int, db:Session = Depends(get_db)):
+def delete_team(team_id: int, db: Session = Depends(get_db)):
     '''Deleta Time'''
     return crud_team.delete_team(db=db, team_id=team_id)
 
+
 @app.get("/pokemon")
-def get_pokemon(pokemon:str):
+def get_pokemon(pokemon: str):
     '''Consome a PokeAPI, mostrando os dados do pokemon desejado'''
     url = f'https://pokeapi.co/api/v2/pokemon/{pokemon}/'
     r = requests.get(url)
     dados = r.json()
-    return {"name" : dados['name'],
-            "id" : dados['id'],
-            "weight" : dados['weight'],
-            "type" : dados["types"][0]["type"]["name"]}
+    return {"name": dados['name'],
+            "id": dados['id'],
+            "weight": dados['weight'],
+            "type": dados["types"][0]["type"]["name"]}
